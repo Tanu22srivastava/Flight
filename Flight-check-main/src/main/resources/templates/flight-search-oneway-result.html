@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Flight Search Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <style>
+        .flight-table {
+            min-width: 1200px;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .hover-bg:hover {
+            background-color: #f8fafc;
+        }
+
+        .ellipsis {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]:hover:after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a8a;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">Flight Search Results</h1>
+            <a href="/flight-search"
+                class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 transition-shadow shadow-sm">
+                ← Back to Search
+            </a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 p-4">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center justify-center mb-6 space-x-4">
+                    <label for="applyToAllMargin" class="text-gray-700 font-medium">Margin to Apply:</label>
+                    <input type="number" id="applyToAllMargin"
+                        class="w-28 p-2 border rounded-lg focus:ring focus:ring-blue-300">
+                    <button id="applyAllBtn"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Apply</button>
+                </div>
+                <div class="border-l border-slate-200 h-12"></div>
+                <div class="flex items-center">
+                    <button id="copyToClipboardBtn"
+                        class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors duration-150 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Selected
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-4 mb-4">
+                    <label class="text-sm font-medium text-slate-700">Sort By:</label>
+                    <select id="sortOptions"
+                        class="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-slate-300">
+                        <option value="publishedFare">Published Fare</option>
+                        <option value="depTime">Departure Time</option>
+                        <option value="arrTime">Arrival Time</option>
+                        <option value="duration">Duration</option>
+                    </select>
+                </div>
+
+                <div class="mb-4 flex items-center space-x-4">
+                    <label class="text-sm font-medium text-slate-700">Group By:</label>
+                    <select id="groupByFlight" class="border rounded-lg px-3 py-2 w-48">
+                        <option value="all">All Flights</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+            <table class="flight-table w-full">
+                <thead class="sticky-header bg-slate-50">
+                    <tr class="text-sm font-semibold text-slate-600 uppercase">
+                        <th class="px-4 py-3 w-12 text-center">Select</th>
+                        <th class="px-4 py-3">Route</th>
+                        <th class="px-4 py-3">Times</th>
+                        <th class="px-4 py-3">Airline</th>
+                        <th class="px-4 py-3">Fares</th>
+                        <th class="px-4 py-3">Details</th>
+                        <th class="px-4 py-3">Margin</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-sm">
+                    <tr th:each="result, iterStat : ${flightSearchResults}" class="hover-bg">
+                        <td class="px-4 py-3 text-center">
+                            <input type="checkbox"
+                                class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out">
+                        </td>
+
+                        <!-- Route Column -->
+                        <td class="px-4 py-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="font-medium text-slate-800 ellipsis"
+                                    data-tooltip="Origin: [[${result.origin}]]">
+                                    [[${result.origin}]] <span
+                                        class="text-slate-500">T[[${result.originTerminal}]]</span>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                                <div class="font-medium text-slate-800 ellipsis"
+                                    data-tooltip="Destination: [[${result.destination}]]">
+                                    [[${result.destination}]] <span
+                                        class="text-slate-500">[[${result.destinationTerminal}]]</span>
+                                </div>
+                                <div th:if="${result.oneStopAirport}"
+                                    class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    1 Stop <br> <span class="text-slate-500">[[${result.oneStopAirport}]]</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Times Column -->
+                        <td class="px-4 py-3">
+                            <div class="space-y-1">
+                                <div class="font-medium text-slate-800">
+                                    [[${#temporals.format(result.depTime, 'HH:mm')}]]
+                                    <span class="text-slate-500">-</span>
+                                    [[${#temporals.format(result.arrTime, 'HH:mm')}]]
+                                </div>
+                                <div class="text-slate-500 text-xs">
+                                    [[${result.duration}]] mins
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Airline Column -->
+                        <td class="px-4 py-3">
+                            <div class="flex items-center space-x-2">
+                                <div
+                                    class="bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center text-xs font-medium">
+                                    [[${result.airlineCode}]]
+                                </div>
+                                <div class="ellipsis" data-tooltip="[[${result.airlineName}]]">
+                                    [[${result.airlineName}]]
+                                </div>
+                                <div>Flight: [[${result.flightNumber}]]</div>
+                            </div>
+                        </td>
+
+                        <!-- Fares Column -->
+                        <td class="px-4 py-3">
+                            <div class="space-y-1">
+                                <div class="text-slate-500">
+                                    Published-Fare - ₹[[${result.publishedFare}]]
+                                </div>
+                                <div class="font-medium text-green-700">
+                                    Offered-Fare - ₹[[${result.offeredFare}]]
+                                </div>
+                                <!-- isRefundable -->
+                                <div class="font-medium text-green-700">
+                                    Refundable - [[${result.isRefundable}]]
+                                </div>
+                                <!-- ResultFareType -->
+                                <div class="font-medium text-green-700">
+                                    Fare Type - [[${result.resultFareType}]]
+                                </div>
+
+
+                            </div>
+                        </td>
+
+                        <!-- Details Column -->
+                        <td class="px-4 py-3">
+                            <div class="space-y-1 text-sm">
+                                <div>Seats: [[${result.noOfSeatAvailable}]]</div>
+                                <div>Class: [[${result.supplierFareClass}]]</div>
+                            </div>
+                        </td>
+
+                        <!-- Margin Column -->
+                        <td class="px-4 py-3">
+                            <div>
+                                <!-- <td class="with-margin" data-row-index="${iterStat.index}">0</td> -->
+                                <label>With Margin:</label>
+                                <span class="with-margin" data-row-index="${iterStat.index}">0</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-500 text-sm">Custom Margin</span>
+                                <input type="number"
+                                    class="custom-margin w-20 px-2 py-1 border rounded-md focus:ring-2 focus:ring-blue-500 border-slate-300 text-sm"
+                                    value="0">
+                                <!-- <span class="text-slate-500 text-sm">%</span> -->
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Apply margin to all rows
+        $(document).ready(function () {
+            // Apply margin to all rows
+            $('#applyAllBtn').click(function () {
+                console.log("Apply to All clicked");
+                var margin = parseFloat($('#applyToAllMargin').val()) || 0;
+                $('.with-margin').text(margin.toFixed(2));
+            });
+
+
+            $(document).ready(function () {
+                var customMargins = {};
+
+                // Apply margin to all
+                $('#applyAllBtn').click(function () {
+                    let margin = parseFloat($('#applyToAllMargin').val()) || 0;
+                    $('.with-margin').text(margin.toFixed(2));
+                });
+
+                // Track custom margins
+                $('tbody').on('input', '.custom-margin', function () {
+                    let rowIndex = $(this).closest('tr').index();
+                    let margin = parseFloat($(this).val()) || 0;
+                    customMargins[rowIndex] = margin;
+                });
+
+                // Copy flights to clipboard
+                $('#copyToClipboardBtn').click(function () {
+                    let selectedFlights = [];
+                    let optionNumber = 1;
+
+                    $('tbody tr').each(function () {
+                        if ($(this).find('input[type="checkbox"]').is(':checked')) {
+                            const row = $(this);
+
+                            const airlineCode = row.find('td:nth-child(4) .bg-slate-100').text().trim();
+                            const airlineName = row.find('td:nth-child(4) .ellipsis').text().trim();
+                            const flightNumber = row.find('td:nth-child(4) div:contains("Flight:")')
+                                .contents()
+                                .filter(function () { return this.nodeType === 3; }) // Select only text nodes
+                                .text()
+                                .replace('Flight:', '')
+                                .trim();
+
+
+                            // Remove duplicate airline code issue
+                            const flightDetails = `${airlineName} ${airlineCode} ${flightNumber}`.replace(/\b(\w+) \1\b/g, '$1');
+
+                            // Origin
+                            const originElem = row.find('td:nth-child(2) .ellipsis').first();
+                            const origin = originElem.contents().first().text().trim();
+                            let originTerminal = originElem.find('.text-slate-500').text().trim();
+                            if (originTerminal && !originTerminal.startsWith('T')) originTerminal = `T${originTerminal}`; // Ensure correct format
+
+                            // Destination
+                            const destElem = row.find('td:nth-child(2) .ellipsis').last();
+                            const destination = destElem.contents().first().text().trim();
+                            let destTerminal = destElem.find('.text-slate-500').text().trim();
+                            if (destTerminal && !destTerminal.startsWith('T')) destTerminal = `T${destTerminal}`; // Ensure correct format
+
+                            // Departure & Arrival Times
+                            const timeText = row.find('td:nth-child(3) .font-medium').text().trim();
+                            const times = timeText.split('-');
+                            const depTime = times[0].trim();
+                            const arrTime = times[1].trim();
+
+                            const durationText = row.find('td:nth-child(3) .text-slate-500').text().replace(/\s+/g, ' ').trim();
+                            const numericPart = durationText.match(/\d+/); // Extracts the numeric part
+                            const durationInt = numericPart ? parseInt(numericPart[0], 10) : NaN;
+                            const durationHours = Math.floor(durationInt / 60);
+                            const remainingMinutes = durationInt % 60;
+                            const formattedDuration = String(durationHours).padStart(2, '0') + "h " + String(remainingMinutes).padStart(2, '0') + "m";
+
+                            // Published Fare
+                            const fareText = row.find('td:nth-child(5) .text-slate-500').text().trim();
+                            const publishedFareMatch = fareText.match(/₹(\d+)/);
+                            const publishedFare = publishedFareMatch ? parseFloat(publishedFareMatch[1]) : 0;
+
+                            // Final Fare Calculation
+                            const rowIndex = row.index();
+                            const margin = customMargins[rowIndex] || parseFloat(row.find('.with-margin').text()) || 0;
+                            const finalFare = publishedFare + margin;
+
+                            const oneStop = row.find('.text-xs.bg-blue-100').length ? row.find('.text-xs.bg-blue-100 span').text().trim() : null;
+
+                            // Final formatted output
+                            const output = `Option ${optionNumber}: ${flightDetails} \n` +
+                                `${origin} ${originTerminal} (${depTime}) → ` + (oneStop ? `${oneStop} → ` : "") +
+                                `${destination} ${destTerminal} (${arrTime}) ${formattedDuration}\n` +
+                                `INR ${finalFare.toFixed(0)}`;
+
+                            selectedFlights.push(output);
+                            optionNumber++;
+                        }
+                    });
+
+                    if (selectedFlights.length > 0) {
+                        navigator.clipboard.writeText(selectedFlights.join('\n\n'))
+                            .then(() => alert('Copied to clipboard!'))
+                            .catch(() => alert('Failed to copy!'));
+                    } else {
+                        alert('No flights selected!');
+                    }
+                });
+            });
+
+
+
+
+            // Existing sorting and grouping functionality
+            $("#sortOptions").on("change", function () {
+                let selectedOption = $(this).val();
+                let rows = $("tbody tr").get();
+
+                rows.sort(function (a, b) {
+                    let valA, valB;
+
+                    switch (selectedOption) {
+                        case "publishedFare":
+                            valA = parseFloat($(a).find("td:nth-child(5)").text().match(/\d+/)[0]) || 0;
+                            valB = parseFloat($(b).find("td:nth-child(5)").text().match(/\d+/)[0]) || 0;
+                            break;
+                        case "depTime":
+                            valA = getTimeInMinutes($(a).find("td:nth-child(3)").text());
+                            valB = getTimeInMinutes($(b).find("td:nth-child(3)").text());
+                            break;
+                        case "arrTime":
+                            valA = getTimeInMinutes($(a).find("td:nth-child(3)").text().split('-')[1]);
+                            valB = getTimeInMinutes($(b).find("td:nth-child(3)").text().split('-')[1]);
+                            break;
+                        case "duration":
+                            valA = parseInt($(a).find("td:nth-child(3) div.text-slate-500").text()) || 0;
+                            valB = parseInt($(b).find("td:nth-child(3) div.text-slate-500").text()) || 0;
+                            break;
+                    }
+
+                    return valA - valB;
+                });
+
+                $.each(rows, function (index, row) {
+                    $("tbody").append(row);
+                });
+            });
+
+            function getTimeInMinutes(timeStr) {
+                let match = timeStr.match(/(\d{2}):(\d{2})/);
+                if (!match) return 0;
+                return parseInt(match[1]) * 60 + parseInt(match[2]);
+            }
+
+            let uniqueFlights = new Set();
+
+            // Extract unique flights dynamically
+            $("tbody tr").each(function () {
+                let flightName = $(this).find("td:nth-child(4) .ellipsis").text().trim();
+                if (flightName) {
+                    uniqueFlights.add(flightName);
+                }
+            });
+
+            // Populate Group By dropdown
+            uniqueFlights.forEach(flight => {
+                $("#groupByFlight").append(new Option(flight, flight));
+            });
+
+            // Filter table based on selection
+            $("#groupByFlight").on("change", function () {
+                let selectedFlight = $(this).val();
+                $("tbody tr").each(function () {
+                    let flightName = $(this).find("td:nth-child(4) .ellipsis").text().trim();
+                    if (selectedFlight === "all" || flightName === selectedFlight) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

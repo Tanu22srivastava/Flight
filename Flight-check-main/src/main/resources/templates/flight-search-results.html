@@ -1,0 +1,691 @@
+<!-- <!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Flight Search Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script> 
+</head>
+<style>
+    /* Table styling */
+    body{
+        background-color: white;
+    }
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+        margin-bottom: 20px; /* Added space between tables */
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    th, td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .fixed-header thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f2f2f2;
+        z-index: 1;
+    }
+</style>
+<body class="bg-blue-100">
+    <div class="p-8 w-full">
+        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Flight Search Results</h2>
+
+        <div class="mb-4 flex items-center">
+            <label for="applyToAllMargin" class="mr-2">Margin to Apply to All:</label>
+            <input type="number" id="applyToAllMargin" class="w-24 p-2 border rounded-lg focus:ring focus:ring-blue-300">
+            <button type="button" id="applyAllBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition ml-2">Apply to All</button>
+        </div>
+
+        <div id="tablesContainer">
+            <div class="table-container">
+                <table id="flightResultsTable" class="fixed-header">
+                    <thead>
+                        <tr class="bg-blue-500 text-black">
+                            <th>Select</th>
+                            <th>Origin</th>
+                            <th>Origin<br> Terminal</th> 
+                            <th>One-Stop</th>
+                            <th>Destination</th>
+                            <th>Destination<br> Terminal</th> 
+                            <th>Departure <br> Time</th>
+                            <th>Arrival <br> Time</th>
+                            <th>Duration</th>
+                            <th>Airline <br> Name</th>
+                            <th>Airline <br> Code</th>
+                            <th>Published <br> Fare</th>
+                            <th>Offered <br> Fare</th>
+                            <th>Flight <br> Number</th>
+                            <th >Number of <br> seats Available</th>
+                        <th >Fare <br> Class</th>
+                            <th>With <br> Margin</th>
+                            <th>Custom <br> Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="result, iterStat : ${flightSearchResults}">
+                            <td><input type="checkbox" class="select-flight" data-row-index="${iterStat.index}"/></td>
+                            <td th:text="${result.origin} ?: '-'"></td>
+                            <td th:text="${result.originTerminal} ?: '-'"></td> 
+                            <td th:text="${result.oneStopAirport} ?: '-'"></td> 
+                            <td th:text="${result.destination} ?: '-'"></td>
+                            <td th:text="${result.destinationTerminal} ?: '-'"></td> 
+                            <td th:text="${#temporals.format(result.depTime, 'HH:mm')} ?: '-'"></td> 
+                            <td th:text="${#temporals.format(result.arrTime, 'HH:mm')} ?: '-'"></td>
+                            <td th:text="${result.duration} ?: '-'"></td>
+                            <td th:text="${result.airlineName} ?: '-'"></td>
+                            <td th:text="${result.airlineCode} ?: '-'"></td>
+                            <td th:text="${result.publishedFare} ?: '-'"></td>
+                            <td th:text="${result.offeredFare} ?: '-'"></td>
+                            <td th:text="${result.flightNumber} ?: '-'"></td>
+                            <td class="p-3 border" th:text="${result.noOfSeatAvailable} ?: '-'"></td>
+                        <td class="p-3 border" th:text="${result.supplierFareClass}  ?: '-'"></td>
+                            <td class="with-margin" data-row-index="${iterStat.index}">0</td>
+                            <td>
+                                <input type="number" class="custom-margin w-20 p-1 border rounded-lg focus:ring focus:ring-blue-300" data-row-index="${iterStat.index}" value="0">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-6">
+            <button type="button" id="copyToClipboardBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition mr-2">Copy to Clipboard</button>
+            <a href="/flight-search" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Back to Search</a>
+        </div>
+    </div>
+
+    <script>
+        
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Flight Search Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <style>
+        .flight-table {
+            min-width: 1200px;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        .hover-bg:hover {
+            background-color: #f8fafc;
+        }
+        .ellipsis {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+        [data-tooltip]:hover:after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a8a;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .flight-section {
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            padding: 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">Flight Search Results</h1>
+            <a href="/flight-search" class="bg-white text-slate-600 px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 transition-shadow shadow-sm">
+                ← Back to Search
+            </a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 p-4">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center justify-center mb-6 space-x-4">
+                    <label for="applyToAllMargin" class="text-gray-700 font-medium">Margin to Apply:</label>
+                    <input type="number" id="applyToAllMargin"
+                        class="w-28 p-2 border rounded-lg focus:ring focus:ring-blue-300">
+                    <button id="applyAllBtn"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Apply</button>
+                </div>
+                <div class="border-l border-slate-200 h-12"></div>
+                <div class="flex items-center">
+                    <button id="copyToClipboardBtn"
+                        class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors duration-150 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Copy Selected
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-4 mb-4">
+                    <label class="text-sm font-medium text-slate-700">Sort By:</label>
+                    <select id="sortOptions"
+                        class="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 border-slate-300">
+                        <option value="publishedFare">Published Fare</option>
+                        <option value="depTime">Departure Time</option>
+                        <option value="arrTime">Arrival Time</option>
+                        <option value="duration">Duration</option>
+                    </select>
+                </div>
+
+                <div class="mb-4 flex items-center space-x-4">
+                    <label class="text-sm font-medium text-slate-700">Group By:</label>
+                    <select id="groupByFlight" class="border rounded-lg px-3 py-2 w-48">
+                        <option value="all">All Flights</option>
+                    </select>
+                </div>
+
+            </div>
+
+        <!-- FLIGHT SECTIONS (will be populated by JavaScript) -->
+        <div id="tablesContainer" class="space-y-8">
+            <!-- Outbound Section -->
+            <div id="outboundSection" class="flight-section mb-8" style="display: none;">
+                <div class="section-title flex items-center justify-between rounded-t-lg">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                        <span class="text-lg font-bold">Outbound Flights</span>
+                    </div>
+                    <div id="outboundRoute" class="text-sm text-slate-600"></div>
+                </div>
+                <div class="overflow-x-auto p-4">
+                    <table id="outboundTable" class="flight-table w-full">
+                        <thead class="sticky-header bg-slate-50">
+                            <tr class="text-sm font-semibold text-slate-600 uppercase">
+                                <th class="px-4 py-3 w-12 text-center">Select</th>
+                                <th class="px-4 py-3">Route</th>
+                                <th class="px-4 py-3">Times</th>
+                                <th class="px-4 py-3">Airline</th>
+                                <th class="px-4 py-3">Fares</th>
+                                <th class="px-4 py-3">Details</th>
+                                <th class="px-4 py-3">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Return Section -->
+            <div id="returnSection" class="flight-section mb-8" style="display: none;">
+                <div class="section-title flex items-center justify-between rounded-t-lg">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                        <span class="text-lg font-bold">Return Flights</span>
+                    </div>
+                    <div id="returnRoute" class="text-sm text-slate-600"></div>
+                </div>
+                <div class="overflow-x-auto p-4">
+                    <table id="returnTable" class="flight-table w-full">
+                        <thead class="sticky-header bg-slate-50">
+                            <tr class="text-sm font-semibold text-slate-600 uppercase">
+                                <th class="px-4 py-3 w-12 text-center">Select</th>
+                                <th class="px-4 py-3">Route</th>
+                                <th class="px-4 py-3">Times</th>
+                                <th class="px-4 py-3">Airline</th>
+                                <th class="px-4 py-3">Fares</th>
+                                <th class="px-4 py-3">Details</th>
+                                <th class="px-4 py-3">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Original table, will be hidden once processed -->
+            <div id="originalTableContainer" class="flight-section">
+                <div class="overflow-x-auto p-4">
+                    <table class="flight-table w-full">
+                        <thead class="sticky-header bg-slate-50">
+                            <tr class="text-sm font-semibold text-slate-600 uppercase">
+                                <th class="px-4 py-3 w-12 text-center">Select</th>
+                                <th class="px-4 py-3">Route</th>
+                                <th class="px-4 py-3">Times</th>
+                                <th class="px-4 py-3">Airline</th>
+                                <th class="px-4 py-3">Fares</th>
+                                <th class="px-4 py-3">Details</th>
+                                <th class="px-4 py-3">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm" id="originalTableBody">
+                            <tr th:each="result, iterStat : ${flightSearchResults}" class="hover-bg flight-row" th:data-origin="${result.origin}" th:data-destination="${result.destination}">
+                                <td class="px-4 py-3 text-center">
+                                    <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out">
+                                </td>
+                                
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="font-medium text-slate-800 ellipsis" data-tooltip="Origin: [[${result.origin}]]">
+                                            [[${result.origin}]] <span class="text-slate-500">T[[${result.originTerminal}]]</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                        </svg>
+                                        <div class="font-medium text-slate-800 ellipsis" data-tooltip="Destination: [[${result.destination}]]">
+                                            [[${result.destination}]] <span class="text-slate-500">[[${result.destinationTerminal}]]</span>
+                                        </div>
+                                        <div th:if="${result.oneStopAirport}" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                            1 Stop <br>  <span class="text-slate-500">[[${result.oneStopAirport}]]</span>
+                                        </div>
+                                    </div>
+                                </td>
+    
+                                <td class="px-4 py-3">
+                                    <div class="space-y-1">
+                                        <div class="font-medium text-slate-800">
+                                            [[${#temporals.format(result.depTime, 'HH:mm')}]] 
+                                            <span class="text-slate-500">-</span> 
+                                            [[${#temporals.format(result.arrTime, 'HH:mm')}]]
+                                        </div>
+                                        <div class="text-slate-500 text-xs">
+                                            [[${result.duration}]] mins
+                                        </div>
+                                    </div>
+                                </td>
+    
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center text-xs font-medium">
+                                            [[${result.airlineCode}]]
+                                        </div>
+                                        <div class="ellipsis" data-tooltip="[[${result.airlineName}]]">
+                                            [[${result.airlineName}]]
+                                        </div>
+                                        <div>Flight: [[${result.flightNumber}]]</div>
+                                    </div>
+                                </td>
+    
+                                <td class="px-4 py-3">
+                                    <div class="space-y-1">
+                                        <div class="text-slate-500">
+                                            Published-Fare - ₹[[${result.publishedFare}]]
+                                        </div>
+                                        <div class="font-medium text-green-700">
+                                             Offered-Fare - ₹[[${result.offeredFare}]]
+                                        </div>
+                                    </div>
+                                </td>
+    
+                                <td class="px-4 py-3">
+                                    <div class="space-y-1 text-sm">
+                                        <div>Seats: [[${result.noOfSeatAvailable}]]</div>
+                                        <div>Class: [[${result.supplierFareClass}]]</div>
+                                    </div>
+                                </td>
+    
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center space-x-2">
+                                        <label>With Margin:</label> <br>
+                                        <span class="with-margin" data-row-index="${iterStat.index}">0</span> <br>
+                                        <span class="text-slate-500 text-sm">Custom Margin</span> <br>
+                                        <input type="number" 
+                                               class="w-20 px-2 py-1 border rounded-md focus:ring-2 focus:ring-blue-500 border-slate-300 text-sm custom-margin"
+                                               data-row-index="${iterStat.index}"
+                                               value="0">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // Process the flights and separate them into outbound and return
+            processFlights();
+            
+            // Apply margin to all rows
+            $('#applyAllBtn').click(function () {
+                console.log("Apply to All clicked");
+                var margin = parseFloat($('#applyToAllMargin').val()) || 0;
+                $('.with-margin').text(margin.toFixed(2));
+            });
+
+            let selectedOutboundFlight = null; // Store the selected outbound flight
+    let selectedReturnFlights = []; // Store selected return flights
+
+    // Restrict selection in outbound flights (Only one can be selected)
+    $('#outboundTable').on('change', 'input[type="checkbox"]', function () {
+        $('#outboundTable input[type="checkbox"]').not(this).prop('checked', false);
+        selectedOutboundFlight = this.checked ? $(this).closest('tr') : null;
+    });
+
+    // Allow multiple selections in return flights
+    $('#returnTable').on('change', 'input[type="checkbox"]', function () {
+        let row = $(this).closest('tr');
+        if (this.checked) {
+            selectedReturnFlights.push(row);
+        } else {
+            selectedReturnFlights = selectedReturnFlights.filter(flight => !flight.is(row));
+        }
+    });
+
+    // Copy to clipboard
+    $('#copyToClipboardBtn').click(function () {
+        if (!selectedOutboundFlight) {
+            alert('Please select one outbound flight.');
+            return;
+        }
+
+        if (selectedReturnFlights.length === 0) {
+            alert('Please select at least one return flight.');
+            return;
+        }
+
+        let selectedFlights = [];
+        let optionNumber = 1;
+
+        // Extract outbound flight details
+        let outboundDetails = extractFlightDetails(selectedOutboundFlight);
+        let outboundFare = outboundDetails.finalFare; // Store outbound fare for calculation
+
+        // Loop through selected return flights and create options
+        selectedReturnFlights.forEach(returnFlight => {
+            let returnDetails = extractFlightDetails(returnFlight);
+            let totalFare = outboundFare + returnDetails.finalFare;
+
+            let output = `Option ${optionNumber}: \n` +
+                `${outboundDetails.details} \n` +
+                `${returnDetails.details} \n` +
+                `Total Fare: INR ${totalFare.toFixed(0)}`;
+
+            selectedFlights.push(output);
+            optionNumber++;
+        });
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(selectedFlights.join('\n\n'))
+            .then(() => alert('Copied to clipboard!'))
+            .catch(() => alert('Failed to copy!'));
+    });
+
+    // Function to extract flight details
+    function extractFlightDetails(row) {
+        const airlineCode = row.find('td:nth-child(4) .bg-slate-100').text().trim();
+        const airlineName = row.find('td:nth-child(4) .ellipsis').text().trim();
+        const flightNumber = row.find('td:nth-child(4) div:contains("Flight:")')
+            .contents()
+            .filter(function () { return this.nodeType === 3; })
+            .text()
+            .replace('Flight:', '')
+            .trim();
+
+        const flightDetails = `${airlineName} ${airlineCode} ${flightNumber}`.replace(/\b(\w+) \1\b/g, '$1');
+
+        const originElem = row.find('td:nth-child(2) .ellipsis').first();
+        const origin = originElem.contents().first().text().trim();
+        let originTerminal = originElem.find('.text-slate-500').text().trim();
+        if (originTerminal && !originTerminal.startsWith('T')) originTerminal = `T${originTerminal}`;
+
+        const destElem = row.find('td:nth-child(2) .ellipsis').last();
+        const destination = destElem.contents().first().text().trim();
+        let destTerminal = destElem.find('.text-slate-500').text().trim();
+        if (destTerminal && !destTerminal.startsWith('T')) destTerminal = `T${destTerminal}`;
+
+        const timeText = row.find('td:nth-child(3) .font-medium').text().trim();
+        const times = timeText.split('-');
+        const depTime = times[0].trim();
+        const arrTime = times[1].trim();
+
+        const durationText = row.find('td:nth-child(3) .text-slate-500').text().replace(/\s+/g, ' ').trim();
+        const numericPart = durationText.match(/\d+/);
+        const durationInt = numericPart ? parseInt(numericPart[0], 10) : NaN;
+        const durationHours = Math.floor(durationInt / 60);
+        const remainingMinutes = durationInt % 60;
+        const formattedDuration = `${String(durationHours).padStart(2, '0')}h ${String(remainingMinutes).padStart(2, '0')}m`;
+
+        const fareText = row.find('td:nth-child(5) .text-slate-500').text().trim();
+        const publishedFareMatch = fareText.match(/₹(\d+)/);
+        const publishedFare = publishedFareMatch ? parseFloat(publishedFareMatch[1]) : 0;
+
+        const rowIndex = row.index();
+        const margin = parseFloat(row.find('.custom-margin').val()) || 0;
+        const finalFare = publishedFare + margin;
+
+        const oneStop = row.find('.text-xs.bg-blue-100').length ? row.find('.text-xs.bg-blue-100 span').text().trim() : null;
+
+        let details = `${flightDetails} \n` +
+            `${origin} ${originTerminal} (${depTime}) → ` + (oneStop ? `${oneStop} → ` : "") +
+            `${destination} ${destTerminal} (${arrTime}) ${formattedDuration}\n` +
+            `INR ${finalFare.toFixed(0)}`;
+
+        return { details, finalFare };
+    }
+
+
+
+
+    
+            // Store custom margins per row
+            var customMargins = {
+                outbound: {},
+                return: {}
+            };
+            
+            // Delegated event handler for custom margin inputs
+            $(document).on('change', '.custom-margin', function() {
+                var rowIndex = $(this).data('row-index');
+                var flightType = $(this).data('flight-type') || 'general';
+                var margin = parseFloat($(this).val()) || 0;
+                
+                if (flightType !== 'general') {
+                    customMargins[flightType][rowIndex] = margin;
+                } else {
+                    customMargins[rowIndex] = margin;
+                }
+                
+                $(this).closest('tr').find('.with-margin').text(margin.toFixed(2));
+                
+                console.log(customMargins);
+            });
+            
+            function processFlights() {
+                // Get all flight rows
+                var flightRows = $('.flight-row');
+                
+                if (flightRows.length === 0) {
+                    return;
+                }
+                
+                // Identify outbound and return routes
+                // Strategy: The first segment of flights is outbound, when the origin/destination flips, it's return
+                var firstOrigin = $(flightRows[0]).data('origin');
+                var firstDestination = $(flightRows[0]).data('destination');
+                
+                var outboundRows = [];
+                var returnRows = [];
+                var isOutbound = true;
+                
+                flightRows.each(function(index) {
+                    var origin = $(this).data('origin');
+                    var destination = $(this).data('destination');
+                    
+                    // If the destination is now the origin and vice versa, it's a return flight
+                    if (isOutbound && origin === firstDestination && destination === firstOrigin) {
+                        isOutbound = false;
+                    }
+                    
+                    if (isOutbound) {
+                        outboundRows.push(this);
+                    } else {
+                        returnRows.push(this);
+                    }
+                });
+                
+                // If we have both outbound and return flights, process them
+                if (outboundRows.length > 0) {
+                    populateFlightSection('outbound', outboundRows, firstOrigin, firstDestination);
+                }
+                
+                if (returnRows.length > 0) {
+                    populateFlightSection('return', returnRows, firstDestination, firstOrigin);
+                }
+                
+                // Hide the original table once we've processed everything
+                $('#originalTableContainer').hide();
+            }
+            
+            function populateFlightSection(sectionType, rows, origin, destination) {
+                var sectionId = sectionType + 'Section';
+                var tableId = sectionType + 'Table';
+                var routeId = sectionType + 'Route';
+                
+                // Set the route text
+                $('#' + routeId).text(origin + ' → ' + destination);
+                
+                // Clone the rows into the appropriate table
+                var $tbody = $('#' + tableId).find('tbody');
+                $tbody.empty();
+                
+                $(rows).each(function(index) {
+                    var $clone = $(this).clone();
+                    
+                    // Update data attributes for the new row
+                    $clone.find('.custom-margin').attr('data-flight-type', sectionType);
+                    $clone.find('.with-margin').attr('data-flight-type', sectionType);
+                    
+                    $tbody.append($clone);
+                });
+                
+                // Show the section
+                $('#' + sectionId).show();
+            }
+
+            // Existing sorting and grouping functionality
+            $("#sortOptions").on("change", function () {
+                let selectedOption = $(this).val();
+                let rows = $("tbody tr").get();
+
+                rows.sort(function (a, b) {
+                    let valA, valB;
+
+                    switch (selectedOption) {
+                        case "publishedFare":
+                            valA = parseFloat($(a).find("td:nth-child(5)").text().match(/\d+/)[0]) || 0;
+                            valB = parseFloat($(b).find("td:nth-child(5)").text().match(/\d+/)[0]) || 0;
+                            break;
+                        case "depTime":
+                            valA = getTimeInMinutes($(a).find("td:nth-child(3)").text());
+                            valB = getTimeInMinutes($(b).find("td:nth-child(3)").text());
+                            break;
+                        case "arrTime":
+                            valA = getTimeInMinutes($(a).find("td:nth-child(3)").text().split('-')[1]);
+                            valB = getTimeInMinutes($(b).find("td:nth-child(3)").text().split('-')[1]);
+                            break;
+                        case "duration":
+                            valA = parseInt($(a).find("td:nth-child(3) div.text-slate-500").text()) || 0;
+                            valB = parseInt($(b).find("td:nth-child(3) div.text-slate-500").text()) || 0;
+                            break;
+                    }
+
+                    return valA - valB;
+                });
+
+                $.each(rows, function (index, row) {
+                    $("tbody").append(row);
+                });
+            });
+
+            function getTimeInMinutes(timeStr) {
+                let match = timeStr.match(/(\d{2}):(\d{2})/);
+                if (!match) return 0;
+                return parseInt(match[1]) * 60 + parseInt(match[2]);
+            }
+
+            let uniqueFlights = new Set();
+
+            // Extract unique flights dynamically
+            $("tbody tr").each(function () {
+                let flightName = $(this).find("td:nth-child(4) .ellipsis").text().trim();
+                if (flightName) {
+                    uniqueFlights.add(flightName);
+                }
+            });
+
+            // Populate Group By dropdown
+            uniqueFlights.forEach(flight => {
+                $("#groupByFlight").append(new Option(flight, flight));
+            });
+
+            // Filter table based on selection
+            $("#groupByFlight").on("change", function () {
+                let selectedFlight = $(this).val();
+                $("tbody tr").each(function () {
+                    let flightName = $(this).find("td:nth-child(4) .ellipsis").text().trim();
+                    if (selectedFlight === "all" || flightName === selectedFlight) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            text-align: center;
+            margin-top: 100px;
+        }
+        .card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            border-radius: 15px;
+            cursor: pointer;
+            padding: 30px;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .card i {
+            font-size: 50px;
+            color: #007bff;
+        }
+        /* Dropdown Styling */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            padding: 10px 0;
+            width: 200px;
+            text-align: center;
+        }
+        .dropdown-menu a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: black;
+        }
+        .dropdown-menu a:hover {
+            background-color: #f1f1f1;
+        }
+        .card:hover .dropdown-menu {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="mb-4">Choose Your Flight Type</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow-lg p-4" onclick="redirectTo('/flight-search')">
+                <i class="fas fa-plane-departure"></i>
+                <h4 class="mt-3">One-Way Flight</h4>
+                <p>Book a single-trip flight effortlessly.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg p-4">
+                <i class="fas fa-exchange-alt"></i>
+                <h4 class="mt-3">Return Flight</h4>
+                <p>Book a round-trip flight conveniently.</p>
+                <!-- Dropdown Menu -->
+                <div class="dropdown-menu">
+                    <a href="/flight-search-return">National Return Flight</a>
+                    <a href="/international/return-form">International Return Flight</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function redirectTo(url) {
+        window.location.href = url;
+    }
+</script>
+
+<!-- Font Awesome for Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+</body>
+</html>

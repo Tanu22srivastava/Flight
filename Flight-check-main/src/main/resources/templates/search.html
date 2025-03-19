@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Flight Search</title>
+</head>
+<body>
+    <form th:action="@{/search}" method="post" th:object="${request}">
+        <!-- Origin & Destination -->
+        <input type="text" th:field="*{Segments[0].Origin}" placeholder="From">
+        <input type="text" th:field="*{Segments[0].Destination}" placeholder="To">
+        
+        <!-- Dates -->
+        <input type="date" th:field="*{Segments[0].PreferredDepartureTime}">
+        <input type="date" th:field="*{Segments[0].PreferredArrivalTime}">
+        
+        <!-- Passengers -->
+        <input type="number" th:field="*{AdultCount}" placeholder="Adults">
+        <input type="number" th:field="*{ChildCount}" placeholder="Children">
+        
+        <button type="submit">Search</button>
+    </form>
+</body>
+</html>

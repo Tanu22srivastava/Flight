@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Flight Search Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+</head>
+
+<style>
+    body {
+        background-color: #f8fafc;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: auto;
+    }
+
+    th,
+    td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+    }
+
+    th {
+        background-color: #1e293b;
+        color: white;
+        font-weight: 600;
+    }
+
+    tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    input[type="number"] {
+        border: 1px solid #cbd5e1;
+    }
+</style>
+
+<body class="bg-gray-100">
+    <div class="max-w-6xl mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 text-center mb-6">Flight Search Results</h2>
+
+        <div class="flex items-center justify-center mb-6 space-x-4">
+            <label for="applyToAllMargin" class="text-gray-700 font-medium">Margin to Apply:</label>
+            <input type="number" id="applyToAllMargin"
+                class="w-28 p-2 border rounded-lg focus:ring focus:ring-blue-300">
+            <button id="applyAllBtn"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Apply</button>
+            <button id="copyToClipboardBtn"
+                class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition">Copy</button>
+        </div>
+
+        <div class="table-container" th:if="${not #lists.isEmpty(mergedFlights)}">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Available Flights</h3>
+            <table class="w-full" id="flightTable">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Trip Type</th>
+                        <th>Origin</th>
+                        <th>Origin<br> Terminal</th>
+                        <th>One-Stop</th>
+                        <th>Destination</th>
+                        <th>Destination<br> Terminal</th>
+                        <th>Departure</th>
+                        <th>Arrival</th>
+                        <th>Duration</th>
+                        <th>Airline</th>
+                        <th>Flight No.</th>
+                        <th>Published Fare</th>
+                        <th>Offered <br> Fare</th>
+                        <th>Number of <br> seats Available</th>
+                        <th>Fare <br> Class</th>
+                        <th>With <br> Margin</th>
+                        <th>Custom <br> Margin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="flight, iterStat : ${mergedFlights}"
+                        th:class="${flight.tripIndicator == 1} ? 'bg-gray-50' : 'bg-white'">
+                        <td>
+                            <input type="checkbox" class="select-flight" th:data-index="${iterStat.index}"
+                                th:data-trip="${flight.tripIndicator}" onclick="selectReturnFlight(this)">
+                        </td>
+                        <td th:text="${flight.tripIndicator == 1 ? 'Outbound' : 'Return'}"></td>
+                        <td th:text="${flight.origin}"></td>
+                        <td th:text="${flight.originTerminal} ?: '-'"></td>
+                        <td th:text="${flight.oneStopAirport} ?: '-'"></td>
+                        <td th:text="${flight.destination}"></td>
+                        <td th:text="${flight.destinationTerminal} ?: '-'"></td>
+                        <td th:text="${#temporals.format(flight.depTime, 'HH:mm')}"></td>
+                        <td th:text="${#temporals.format(flight.arrTime, 'HH:mm')}"></td>
+                        <td th:text="${flight.duration}"></td>
+                        <td th:text="${flight.airlineName}"></td>
+                        <td th:text="${flight.flightNumber}"></td>
+                        <td class="font-semibold text-blue-600 published-fare"
+                            th:text="'₹' + ${#numbers.formatDecimal(flight.publishedFare, 1, 2)}"></td>
+                        <td class="offered-fare" th:text="${flight.offeredFare} ?: '-'"></td>
+                        <td th:text="${flight.noOfSeatAvailable} ?: '-'"></td>
+                        <td th:text="${flight.supplierFareClass} ?: '-'"></td>
+                        <td class="with-margin" data-row-index="${iterStat.index}">0</td>
+                        <td class="custom-margin">
+                            <input type="number"
+                                class="custom-margin-input w-20 p-1 border rounded-lg focus:ring focus:ring-blue-300"
+                                data-row-index="${iterStat.index}" value="0">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="text-center mt-6 space-x-4">
+
+            <a href="/flight-search"
+                class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Back</a>
+        </div>
+    </div>
+
+    <script>
+
+        function mergeFareColumns() {
+            let table = document.getElementById("flightTable");
+            let rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i += 2) {
+                let firstPublishedFare = rows[i].querySelector(".published-fare");
+                let secondPublishedFare = rows[i + 1]?.querySelector(".published-fare");
+
+                let firstOfferedFare = rows[i].querySelector(".offered-fare");
+                let secondOfferedFare = rows[i + 1]?.querySelector(".offered-fare");
+
+                let firstCustomMargin = rows[i].querySelector(".custom-margin");
+                let secondCustomMargin = rows[i + 1]?.querySelector(".custom-margin");
+
+                let firstCustomMarginInput = firstCustomMargin.querySelector("input");
+                let secondCustomMarginInput = secondCustomMargin?.querySelector("input");
+
+                if (secondPublishedFare && firstPublishedFare.innerText === secondPublishedFare.innerText) {
+                    firstPublishedFare.rowSpan = 2;
+                    secondPublishedFare.style.display = "none";
+                }
+
+                if (secondOfferedFare && firstOfferedFare.innerText === secondOfferedFare.innerText) {
+                    firstOfferedFare.rowSpan = 2;
+                    secondOfferedFare.style.display = "none";
+                }
+
+                if (secondCustomMargin && firstCustomMarginInput.value === secondCustomMarginInput.value) {
+                    firstCustomMargin.rowSpan = 2;
+                    secondCustomMargin.style.display = "none";
+                }
+            }
+        }
+
+        // Run the function after the page loads
+        window.onload = mergeFareColumns;
+        // Apply margin to all rows
+        $('#applyAllBtn').click(function () {
+            const margin = parseFloat($('#applyToAllMargin').val()) || 0;
+            $('.with-margin').text(margin.toFixed(2));
+        });
+
+        // Handle custom margin changes
+        const customMargins = {};
+        $('.custom-margin').on('input', function () {
+            const rowIndex = $(this).data('row-index');
+            const margin = parseFloat($(this).val()) || 0;
+            customMargins[rowIndex] = margin;
+        });
+
+        function selectReturnFlight(checkbox) {
+            const index = parseInt(checkbox.getAttribute("data-index"));
+            const tripType = parseInt(checkbox.getAttribute("data-trip"));
+            const checkboxes = document.querySelectorAll(".select-flight");
+
+            if (tripType === 1) {
+                const nextCheckbox = checkboxes[index + 1];
+                if (nextCheckbox) nextCheckbox.checked = checkbox.checked;
+            } else if (tripType === 2) {
+                const prevCheckbox = checkboxes[index - 1];
+                if (prevCheckbox && !prevCheckbox.checked) checkbox.checked = false;
+            }
+        }
+
+        document.getElementById("copyToClipboardBtn").addEventListener("click", function () {
+            let clipboardData = "";
+            let optionNumber = 1;
+            const checkboxes = document.querySelectorAll(".select-flight:checked");
+
+            for (let i = 0; i < checkboxes.length; i++) {
+                const checkbox = checkboxes[i];
+                const rowIndex = parseInt(checkbox.getAttribute("data-index"));
+                const tripType = parseInt(checkbox.getAttribute("data-trip"));
+
+                if (tripType === 1) {
+                    const outboundRow = checkbox.closest("tr");
+                    const returnRow = outboundRow.nextElementSibling;
+                    const returnCheckbox = returnRow?.querySelector(".select-flight:checked");
+
+                    if (returnRow && returnCheckbox) {
+                        // Calculate fares
+                        const outboundFare = getFinalFare(outboundRow);
+                        const returnFare = getFinalFare(returnRow);
+                        const totalFare = outboundFare + returnFare;
+
+                        // Format details
+                        const outboundDetails = formatFlightDetails(outboundRow);
+                        const returnDetails = formatFlightDetails(returnRow);
+
+                        clipboardData += `Option ${optionNumber}:\n${outboundDetails}\n${returnDetails}\n`;
+                        clipboardData += `Total Fare: ₹${totalFare.toFixed(2)}\n\n`;
+                        optionNumber++;
+                    }
+                }
+            }
+
+            if (clipboardData) {
+                copyToClipboard(clipboardData);
+                alert("Flight details copied!");
+            } else {
+                alert("Please select at least one outbound and return flight pair.");
+            }
+        });
+
+        function getFinalFare(row) {
+            const publishedFare = parseFloat(
+                row.querySelector('td:nth-child(13)').textContent.replace('₹', '').replace(/,/g, '')
+            ) || 0;
+
+            const rowIndex = row.querySelector('.custom-margin').dataset.rowIndex;
+            const customMargin = customMargins[rowIndex] || 0;
+            const withMargin = parseFloat(row.querySelector('.with-margin').textContent) || 0;
+
+            // Priority to custom margin if set
+            r = publishedFare + (customMargin !== 0 ? customMargin : withMargin);
+            r = (r / 2)
+            return r
+        }
+
+        function formatFlightDetails(row) {
+            const cells = row.cells;
+            const airline = cells[10].textContent.trim();
+            const flightNumber = cells[11].textContent.trim();
+            const origin = `${cells[2].textContent.trim()} ${cells[3].textContent.trim()}`;
+            const destination = `${cells[5].textContent.trim()} ${cells[6].textContent.trim()}`;
+            const oneStop = cells[4].textContent.trim();
+            const depTime = cells[7].textContent.trim();
+            const arrTime = cells[8].textContent.trim();
+            const duration = convertDuration(cells[9].textContent.trim());
+
+            let route = `${origin} (${depTime}) `;
+            if (oneStop && oneStop !== '-') route += `→ ${oneStop} `;
+            route += `→ ${destination} (${arrTime}) ${duration}`;
+
+            return `${airline} ${flightNumber}\n${route}`;
+        }
+
+        function convertDuration(minutesText) {
+            const minutes = parseInt(minutesText);
+            if (isNaN(minutes)) return minutesText;
+
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return [hours > 0 ? `${hours}h` : '', mins > 0 ? `${mins}m` : '']
+                .filter(Boolean).join(' ');
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+
+</html>

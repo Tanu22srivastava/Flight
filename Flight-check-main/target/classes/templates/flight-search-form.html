@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Flight Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-5xl">
+        <h2 class="text-2xl font-semibold text-gray-800 text-center mb-6">Flight Search</h2>
+        <form th:action="@{/flight-search}" th:object="${flightSearchRequest}" method="post">
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <!-- Journey Type -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Journey Type</label>
+                    <select th:field="*{journeyType}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                        <option value="1">OneWay</option>
+                    </select>
+                </div>
+
+                <!-- Origin -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Origin</label>
+                    <input type="text" th:field="*{segments[0].origin}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+
+                <!-- Destination -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Destination</label>
+                    <input type="text" th:field="*{segments[0].destination}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <!-- Cabin Class -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Cabin Class</label>
+                    <select th:field="*{segments[0].flightCabinClass}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                        <option value="2">Economy</option>
+                        <option value="3">Premium Economy</option>
+                        <option value="4">Business</option>
+                        <option value="5">Premium Business</option>
+                        <option value="6">First</option>
+                    </select>
+                </div>
+
+                <!-- Direct Flight Checkbox -->
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="directFlight" th:field="*{DirectFlight}" class="h-5 w-5">
+                    <label for="directFlight" class="text-gray-600 font-medium">Direct Flight</label>
+                </div>
+
+                <!-- One-Stop Flight Checkbox -->
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="oneStopFlight" th:field="*{OneStopFlight}" class="h-5 w-5">
+                    <label for="oneStopFlight" class="text-gray-600 font-medium">One-Stop Flight</label>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <!-- Departure Date -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Departure Date</label>
+                    <input type="date" th:field="*{segments[0].preferredDepartureTime}" id="departureDate" required class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+
+                <!-- Arrival Date -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Arrival Date</label>
+                    <input type="date" th:field="*{segments[0].preferredArrivalTime}" id="arrivalDate" required class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <!-- Adults -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Adults</label>
+                    <input type="number" th:field="*{adultCount}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+
+                <!-- Children -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Children</label>
+                    <input type="number" th:field="*{childCount}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+
+                <!-- Infants -->
+                <div>
+                    <label class="block text-gray-600 font-medium">Infants</label>
+                    <input type="number" th:field="*{infantCount}" class="w-full p-3 border rounded-lg focus:ring focus:ring-blue-300">
+                </div>
+            </div>
+
+            <!-- Search Button -->
+            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition">
+                Search Flights
+            </button>
+
+            <div th:if="${errorMessage}" th:text="${errorMessage}" class="text-red-500 mt-4"></div>
+        </form>
+    </div>
+</body>
+</html>

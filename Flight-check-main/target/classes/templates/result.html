@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <form th:action="@{/download}" method="post">
+        <table>
+            <tr th:each="result,iter : ${results[0]}">
+                <td>
+                    <input type="checkbox" name="selectedFlights" 
+                           th:value="${iter.index}">
+                </td>
+                <td th:text="${result.airline.airlineName}"></td>
+                <td th:text="${result.segments[0][0].origin.airport.airportCode}"></td>
+                <td th:text="${result.segments[0][0].destination.airport.airportCode}"></td>
+                <td th:text="${result.fare.publishedFare}"></td>
+            </tr>
+        </table>
+        <button type="submit">Download Selected</button>
+    </form>
+</body>
+</html>
