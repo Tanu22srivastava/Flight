@@ -35,9 +35,9 @@ import java.util.*;
 @Controller
 public class FlightSearchController {
 
-        private final String apiUrl = "http://api.tektravels.com/BookingEngineService_Air/AirService.svc/rest/Search/";
-        private final String endUserIp = "10.110.0.64"; /// Change this to your IP address
-        private final String tokenId = "b4d48286-6660-495f-8e44-54b6be70d48f";
+        private final String apiUrl = ""; // enter your API KEY
+        private final String endUserIp = ""; /// Enter your IP address
+        private final String tokenId = ""; // Enter your token Id
         private final ObjectMapper objectMapper = new ObjectMapper();
         
         private final HttpClient httpClient = HttpClient.newHttpClient();
