@@ -300,7 +300,6 @@ public String processSearchResult(@ModelAttribute FlightSearchRequest flightSear
     // Convert to JSON
     String jsonRequest = objectMapper.writeValueAsString(apiRequest);
     // System.out.println("JSON Request: " + jsonRequest);
-    System.out.println("andr hu mai!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!2323!");
 
     // **Fix: Send API request safely**
     HttpRequest request = HttpRequest.newBuilder()
